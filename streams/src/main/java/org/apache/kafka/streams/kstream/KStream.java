@@ -1219,6 +1219,14 @@ public interface KStream<K, V> {
                                      final Serde<V> thisValSerde,
                                      final Serde<VO> otherValueSerde);
 
+    public <V1, R> KStream<K, R> join(final KStream<K, V1> other,
+                                      final ValueJoiner<? super V, ? super V1, ? extends R> joiner,
+                                      final JoinWindows windows,
+                                      final Serde<K> keySerde,
+                                      final Serde<V> thisValueSerde,
+                                      final Serde<V1> otherValueSerde,
+                                      final String joinName);
+
     /**
      * Join records of this stream with another {@code KStream}'s records using windowed left equi join with default
      * serializers and deserializers.
