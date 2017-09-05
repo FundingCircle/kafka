@@ -1,0 +1,9 @@
+machine:
+  java:
+    version: openjdk8
+
+deployment:
+  quayio:
+    branch: /.*/
+    commands:
+      - ./gradlew -PmavenUrl=$MAVEN_URL -PskipSigning=true -PmavenUsername=$MAVEN_USER -PmavenPassword=$MAVEN_PASSWORD uploadArchivesAll
