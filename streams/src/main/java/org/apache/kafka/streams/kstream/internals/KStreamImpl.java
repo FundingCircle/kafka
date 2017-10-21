@@ -413,9 +413,22 @@ public class KStreamImpl<K, V> extends AbstractStream<K> implements KStream<K, V
             final JoinWindows windows,
             final Serde<K> keySerde,
             final Serde<V> thisValueSerde,
+            final Serde<V1> otherValueSerde,
+            final String joinName) {
+
+        return doJoin(other, joiner, windows, keySerde, thisValueSerde, otherValueSerde, new KStreamImplJoin(false, false), joinName);
+    }
+
+    @Override
+    public <V1, R> KStream<K, R> join(
+            final KStream<K, V1> other,
+            final ValueJoiner<? super V, ? super V1, ? extends R> joiner,
+            final JoinWindows windows,
+            final Serde<K> keySerde,
+            final Serde<V> thisValueSerde,
             final Serde<V1> otherValueSerde) {
 
-        return doJoin(other, joiner, windows, keySerde, thisValueSerde, otherValueSerde, new KStreamImplJoin(false, false));
+        return join(other, joiner, windows, keySerde, thisValueSerde, otherValueSerde, null);
     }
 
     @Override
@@ -455,6 +468,17 @@ public class KStreamImpl<K, V> extends AbstractStream<K> implements KStream<K, V
                                          final Serde<V> thisValueSerde,
                                          final Serde<V1> otherValueSerde,
                                          final KStreamImplJoin join) {
+        return doJoin(other, joiner, windows, keySerde, thisValueSerde, otherValueSerde, join, null);
+    }
+
+    private <V1, R> KStream<K, R> doJoin(final KStream<K, V1> other,
+                                         final ValueJoiner<? super V, ? super V1, ? extends R> joiner,
+                                         final JoinWindows windows,
+                                         final Serde<K> keySerde,
+                                         final Serde<V> thisValueSerde,
+                                         final Serde<V1> otherValueSerde,
+                                         final KStreamImplJoin join,
+                                         final String joinName) {
         Objects.requireNonNull(other, "other KStream can't be null");
         Objects.requireNonNull(joiner, "joiner can't be null");
         Objects.requireNonNull(windows, "windows can't be null");
@@ -478,7 +502,8 @@ public class KStreamImpl<K, V> extends AbstractStream<K> implements KStream<K, V
             windows,
             keySerde,
             thisValueSerde,
-            otherValueSerde);
+            otherValueSerde,
+            joinName);
     }
 
 
@@ -702,6 +727,10 @@ public class KStreamImpl<K, V> extends AbstractStream<K> implements KStream<K, V
             this.rightOuter = rightOuter;
         }
 
+        private String newName(String prefix, String joinName) {
+            return joinName != null ? (prefix + joinName) : topology.newName(prefix);
+        }
+
         public <K1, R, V1, V2> KStream<K1, R> join(KStream<K1, V1> lhs,
                                                    KStream<K1, V2> other,
                                                    ValueJoiner<? super V1, ? super V2, ? extends R> joiner,
@@ -709,10 +738,21 @@ public class KStreamImpl<K, V> extends AbstractStream<K> implements KStream<K, V
                                                    Serde<K1> keySerde,
                                                    Serde<V1> lhsValueSerde,
                                                    Serde<V2> otherValueSerde) {
+            return join(lhs, other, joiner, windows, keySerde, lhsValueSerde, otherValueSerde, null);
+        }
+
+        public <K1, R, V1, V2> KStream<K1, R> join(KStream<K1, V1> lhs,
+                                                   KStream<K1, V2> other,
+                                                   ValueJoiner<? super V1, ? super V2, ? extends R> joiner,
+                                                   JoinWindows windows,
+                                                   Serde<K1> keySerde,
+                                                   Serde<V1> lhsValueSerde,
+                                                   Serde<V2> otherValueSerde,
+                                                   String joinName) {
             String thisWindowStreamName = topology.newName(WINDOWED_NAME);
             String otherWindowStreamName = topology.newName(WINDOWED_NAME);
-            String joinThisName = rightOuter ? topology.newName(OUTERTHIS_NAME) : topology.newName(JOINTHIS_NAME);
-            String joinOtherName = leftOuter ? topology.newName(OUTEROTHER_NAME) : topology.newName(JOINOTHER_NAME);
+            String joinThisName = rightOuter ? newName(OUTERTHIS_NAME, joinName) : newName(JOINTHIS_NAME, joinName);
+            String joinOtherName = leftOuter ? newName(OUTEROTHER_NAME, joinName) : newName(JOINOTHER_NAME, joinName);
             String joinMergeName = topology.newName(MERGE_NAME);
 
             StateStoreSupplier thisWindow =
