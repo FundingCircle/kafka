@@ -27,13 +27,36 @@ public class Joined<K, V, VO> {
     private Serde<K> keySerde;
     private Serde<V> valueSerde;
     private Serde<VO> otherValueSerde;
+    private String joinName;
 
     private Joined(final Serde<K> keySerde,
                    final Serde<V> valueSerde,
-                   final Serde<VO> otherValueSerde) {
+                   final Serde<VO> otherValueSerde,
+                   final String joinName) {
         this.keySerde = keySerde;
         this.valueSerde = valueSerde;
         this.otherValueSerde = otherValueSerde;
+        this.joinName = joinName;
+    }
+
+    /**
+     * Create an instance of {@code Joined} with key, value, and otherValue {@link Serde} instances.
+     * {@code null} values are accepted and will be replaced by the default serdes as defined in config.
+     *
+     * @param keySerde        the key serde to use. If {@code null} the default key serde from config will be used
+     * @param valueSerde      the value serde to use. If {@code null} the default value serde from config will be used
+     * @param otherValueSerde the otherValue serde to use. If {@code null} the default value serde from config will be used
+     * @param <K>             key type
+     * @param <V>             value type
+     * @param <VO>            other value type
+     * @param joinName        name of the join used to generate backing topic names
+     * @return new {@code Joined} instance with the provided serdes
+     */
+    public static <K, V, VO> Joined<K, V, VO> with(final Serde<K> keySerde,
+                                                   final Serde<V> valueSerde,
+                                                   final Serde<VO> otherValueSerde,
+                                                   final String joinName) {
+        return new Joined<>(keySerde, valueSerde, otherValueSerde, joinName);
     }
 
     /**
@@ -51,7 +74,7 @@ public class Joined<K, V, VO> {
     public static <K, V, VO> Joined<K, V, VO> with(final Serde<K> keySerde,
                                                    final Serde<V> valueSerde,
                                                    final Serde<VO> otherValueSerde) {
-        return new Joined<>(keySerde, valueSerde, otherValueSerde);
+        return with(keySerde, valueSerde, otherValueSerde, null);
     }
 
     /**
@@ -97,6 +120,20 @@ public class Joined<K, V, VO> {
     }
 
     /**
+     * Create an instance of {@code Joined} with an other value {@link Serde}.
+     * {@code null} values are accepted and will be replaced by the default value serde as defined in config.
+     *
+     * @param joinName the joinName to use. If {@code null} the default value serde from config will be used
+     * @param <K>             key type
+     * @param <V>             value type
+     * @param <VO>            other value type
+     * @return new {@code Joined} instance configured with the joinName
+     */
+    public static <K, V, VO> Joined<K, V, VO> otherValueSerde(final String joinName) {
+        return with(null, null, null, joinName);
+    }
+
+    /**
      * Set the key {@link Serde} to be used. Null values are accepted and will be replaced by the default
      * key serde as defined in config
      *
@@ -132,6 +169,18 @@ public class Joined<K, V, VO> {
         return this;
     }
 
+    /**
+     * Set the joinName to be used. Null values are accepted and will be replaced by the default
+     * value serde as defined in config
+     *
+     * @param joinName the joinName to use. If null the default joinName from config will be used
+     * @return this
+     */
+    public Joined<K, V, VO> withJoinName(final String joinName) {
+        this.joinName = joinName;
+        return this;
+    }
+
     public Serde<K> keySerde() {
         return keySerde;
     }
@@ -142,5 +191,9 @@ public class Joined<K, V, VO> {
 
     public Serde<VO> otherValueSerde() {
         return otherValueSerde;
+    }
+
+    public String joinName() {
+        return joinName;
     }
 }

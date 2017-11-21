@@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
 
 DEV_BRANCH_NAME = "trunk"
 
-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "1.1.0")
+DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "1.1.0-named-windows-SNAPSHOT")
 
 def get_json(url):
     try:
@@ -157,7 +157,7 @@ def merge_pr(pr_num, target_ref, title, body, pr_repo_desc):
     merge_message_flags = []
 
     merge_message_flags += ["-m", title]
-    
+
     if body is not None:
         # Remove "Committer Checklist" section
         checklist_index = body.find("### Committer Checklist")
