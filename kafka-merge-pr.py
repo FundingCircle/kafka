@@ -72,7 +72,7 @@ RELEASE_BRANCH_PREFIX = "0."
 
 DEV_BRANCH_NAME = "trunk"
 
-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "1.0.1")
+DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "1.0.1-named-windows-SNAPSHOT")
 
 def get_json(url):
     try:
@@ -156,7 +156,7 @@ def merge_pr(pr_num, target_ref, title, body, pr_repo_desc):
 
     commits = run_cmd(['git', 'log', 'HEAD..%s' % pr_branch_name,
                       '--pretty=format:%h [%an] %s']).split("\n")
-    
+
     if len(commits) > 1:
         result = raw_input("List pull request commits in squashed commit message? (y/n): ")
         if result.lower() == "y":
