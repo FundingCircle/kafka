@@ -906,6 +906,10 @@ public class KStreamImpl<K, V> extends AbstractStream<K, V> implements KStream<K
             this.rightOuter = rightOuter;
         }
 
+        private <K1, V1, V2> String newProcessorName(final String prefix, final Joined<K1, V1, V2> joined) {
+            return joined.name() != null ? (prefix + joined.name()) : builder.newProcessorName(prefix);
+        }
+
         public <K1, R, V1, V2> KStream<K1, R> join(final KStream<K1, V1> lhs,
                                                    final KStream<K1, V2> other,
                                                    final ValueJoiner<? super V1, ? super V2, ? extends R> joiner,
@@ -913,8 +917,8 @@ public class KStreamImpl<K, V> extends AbstractStream<K, V> implements KStream<K
                                                    final Joined<K1, V1, V2> joined) {
             final String thisWindowStreamName = builder.newProcessorName(WINDOWED_NAME);
             final String otherWindowStreamName = builder.newProcessorName(WINDOWED_NAME);
-            final String joinThisName = rightOuter ? builder.newProcessorName(OUTERTHIS_NAME) : builder.newProcessorName(JOINTHIS_NAME);
-            final String joinOtherName = leftOuter ? builder.newProcessorName(OUTEROTHER_NAME) : builder.newProcessorName(JOINOTHER_NAME);
+            final String joinThisName = rightOuter ? newProcessorName(OUTERTHIS_NAME, joined) : newProcessorName(JOINTHIS_NAME, joined);
+            final String joinOtherName = leftOuter ? newProcessorName(OUTEROTHER_NAME, joined) : newProcessorName(JOINOTHER_NAME, joined);
             final String joinMergeName = builder.newProcessorName(MERGE_NAME);
 
             final StreamsGraphNode thisStreamsGraphNode = ((AbstractStream) lhs).streamsGraphNode;
